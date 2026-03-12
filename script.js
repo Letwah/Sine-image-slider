@@ -29,6 +29,27 @@ const slideTitles = [
 const sliderContainer = document.querySelector(".slider");
 const titleDisplay = document.getElementById("slide-title");
 
+const colorCanvas = document.createElement("canvas");
+colorCanvas.width = 10;
+colorCanvas.height = 10;
+const colorCtx = colorCanvas.getContext("2d");
+
+function sampleAverageColor(imgEl) {
+  try {
+    colorCtx.drawImage(imgEl, 0, 0, 10, 10);
+    const data = colorCtx.getImageData(0, 0, 10, 10).data;
+    let bestR = 0, bestG = 0, bestB = 0, bestChroma = -1;
+    for (let i = 0; i < data.length; i += 4) {
+      const r = data[i], g = data[i + 1], b = data[i + 2];
+      const chroma = Math.max(r, g, b) - Math.min(r, g, b);
+      if (chroma > bestChroma) { bestChroma = chroma; bestR = r; bestG = g; bestB = b; }
+    }
+    return { r: bestR, g: bestG, b: bestB };
+  } catch {
+    return { r: 0, g: 0, b: 0 };
+  }
+}
+
 const trackWidth = SLIDE_COUNT * SLIDE_GAP;
 let windowWidth = window.innerWidth;
 let windowHeight = window.innerHeight;
@@ -195,6 +216,13 @@ function syncActiveTitle(scrollOffset) {
   if (closestIndex !== activeSlideIndex) {
     activeSlideIndex = closestIndex;
     titleDisplay.textContent = slideTitles[closestIndex];
+    const imgEl = slideElements[closestIndex].querySelector("img");
+    const applyColor = () => {
+      const { r, g, b } = sampleAverageColor(imgEl);
+      titleDisplay.style.setProperty('--highlight', `rgba(${r}, ${g}, ${b}, 0.85)`);
+    };
+    if (imgEl.complete) applyColor();
+    else imgEl.addEventListener("load", applyColor, { once: true });
   }
 }
 
