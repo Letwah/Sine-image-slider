@@ -5,6 +5,7 @@ const SLIDE_HEIGHT = 275;
 const SLIDE_GAP = 100;
 const SLIDE_COUNT = 9;
 const DIAGONAL_RANGE = 300;
+const WAVE_AMPLITUDE = 60;
 const SCROLL_LERP = 0.05;
 
 const slideSources = Array.from(
@@ -55,33 +56,85 @@ function computeSlideTransform(slideIndex, scrollOffset) {
 
   const slideCenterX = windowCenterX + wrappedOffsetX;
   const normalizedDist = (slideCenterX - windowCenterX) / (windowWidth * 0.5);
-  const absDist = Math.min(Math.abs(normalizedDist), 1.3);
+  const absDist = Math.min(Math.abs(normalizedDist), 1);
 
-  const scaleFactor = Math.max(1 - absDist * 0.8, 0.25);
+  const scaleFactor = Math.max(1.2 - absDist * 1, 0.05);
   const scaledWidth = SLIDE_WIDTH * scaleFactor;
   const scaledHeight = SLIDE_HEIGHT * scaleFactor;
 
-  const diagonalOffsetY = -(wrappedOffsetX / (trackWidth / 2)) * DIAGONAL_RANGE;
+  const t = wrappedOffsetX / (trackWidth / 2);
+  const diagonalOffsetY = -t * DIAGONAL_RANGE;
+  const waveOffsetY = Math.sin(t * Math.PI * 2) * WAVE_AMPLITUDE;
 
   return {
     x: slideCenterX - scaledWidth / 2,
-    y: arcBaselineY - scaledHeight / 2 + diagonalOffsetY,
+    y: arcBaselineY - scaledHeight / 2 + diagonalOffsetY + waveOffsetY,
     width: scaledWidth,
     height: scaledHeight,
     zIndex: Math.round((1 - absDist) * 100),
+    blur: absDist * 6,
     distanceFromCenter: Math.abs(wrappedOffsetX),
   };
 }
 
+let zoomedSlideEl = null;
+
 function layoutSlides(scrollOffset) {
   slideElements.forEach((slideEl, i) => {
-    const { x, y, width, height, zIndex } = computeSlideTransform(
+    if (slideEl === zoomedSlideEl) return;
+    const { x, y, width, height, zIndex, blur } = computeSlideTransform(
       i,
       scrollOffset,
     );
-    gsap.set(slideEl, { x, y, width, height, zIndex });
+    gsap.set(slideEl, {
+      x,
+      y,
+      width,
+      height,
+      zIndex,
+      filter: `blur(${blur}px)`,
+    });
   });
 }
+
+function zoomIn(slideEl) {
+  zoomedSlideEl = slideEl;
+  const zoomWidth = Math.min(windowWidth * 0.75, 520);
+  const zoomHeight = zoomWidth * (SLIDE_HEIGHT / SLIDE_WIDTH);
+  gsap.to(slideEl, {
+    x: windowCenterX - zoomWidth / 2,
+    y: windowHeight / 2 - zoomHeight / 2,
+    width: zoomWidth,
+    height: zoomHeight,
+    filter: "blur(0px)",
+    zIndex: 200,
+    duration: 0.5,
+    ease: "power2.inOut",
+  });
+}
+
+function zoomOut(slideEl) {
+  const i = slideElements.indexOf(slideEl);
+  const { x, y, width, height, zIndex, blur } = computeSlideTransform(i, scrollCurrent);
+  gsap.to(slideEl, {
+    x, y, width, height,
+    filter: `blur(${blur}px)`,
+    zIndex,
+    duration: 0.4,
+    ease: "power2.inOut",
+    onComplete: () => { zoomedSlideEl = null; },
+  });
+}
+
+slideElements.forEach((slideEl) => {
+  slideEl.addEventListener("click", () => {
+    if (zoomedSlideEl === slideEl) {
+      zoomOut(slideEl);
+    } else if (zoomedSlideEl === null && slideEl === slideElements[activeSlideIndex]) {
+      zoomIn(slideEl);
+    }
+  });
+});
 
 layoutSlides(0);
 
