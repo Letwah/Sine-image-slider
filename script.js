@@ -17,7 +17,7 @@ const slideTitles = [
   "Grenade",
   "Plein de fruits",
   "Bol de prunes fraîches",
-  "les poires et les cerises",
+  "Les poires et les cerises",
   "Pomme vert",
   "Des prunes",
   "Mangue",
@@ -115,14 +115,22 @@ function zoomIn(slideEl) {
 
 function zoomOut(slideEl) {
   const i = slideElements.indexOf(slideEl);
-  const { x, y, width, height, zIndex, blur } = computeSlideTransform(i, scrollCurrent);
+  const { x, y, width, height, zIndex, blur } = computeSlideTransform(
+    i,
+    scrollCurrent,
+  );
   gsap.to(slideEl, {
-    x, y, width, height,
+    x,
+    y,
+    width,
+    height,
     filter: `blur(${blur}px)`,
     zIndex,
     duration: 0.4,
     ease: "power2.inOut",
-    onComplete: () => { zoomedSlideEl = null; },
+    onComplete: () => {
+      zoomedSlideEl = null;
+    },
   });
 }
 
@@ -130,7 +138,10 @@ slideElements.forEach((slideEl) => {
   slideEl.addEventListener("click", () => {
     if (zoomedSlideEl === slideEl) {
       zoomOut(slideEl);
-    } else if (zoomedSlideEl === null && slideEl === slideElements[activeSlideIndex]) {
+    } else if (
+      zoomedSlideEl === null &&
+      slideEl === slideElements[activeSlideIndex]
+    ) {
       zoomIn(slideEl);
     }
   });
