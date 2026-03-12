@@ -4,8 +4,7 @@ const SLIDE_WIDTH = 200;
 const SLIDE_HEIGHT = 275;
 const SLIDE_GAP = 100;
 const SLIDE_COUNT = 9;
-const ARC_DEPTH = 150;
-const CENTER_LIFT = 100;
+const DIAGONAL_RANGE = 300;
 const SCROLL_LERP = 0.05;
 
 const slideSources = Array.from(
@@ -33,7 +32,7 @@ const trackWidth = SLIDE_COUNT * SLIDE_GAP;
 let windowWidth = window.innerWidth;
 let windowHeight = window.innerHeight;
 let windowCenterX = windowWidth / 2;
-let arcBaselineY = windowHeight * 0.4;
+let arcBaselineY = windowHeight * 0.5;
 
 slideSources.forEach((src) => {
   const slideEl = document.createElement("div");
@@ -62,14 +61,11 @@ function computeSlideTransform(slideIndex, scrollOffset) {
   const scaledWidth = SLIDE_WIDTH * scaleFactor;
   const scaledHeight = SLIDE_HEIGHT * scaleFactor;
 
-  const clampedDist = Math.min(absDist, 1);
-  const arcDropY = (1 - Math.cos(clampedDist * Math.PI)) * 0.5 * ARC_DEPTH;
-
-  const centerLiftY = Math.max(1 - absDist * 2, 0) * CENTER_LIFT;
+  const diagonalOffsetY = -(wrappedOffsetX / (trackWidth / 2)) * DIAGONAL_RANGE;
 
   return {
     x: slideCenterX - scaledWidth / 2,
-    y: arcBaselineY - scaledHeight / 2 + arcDropY - centerLiftY,
+    y: arcBaselineY - scaledHeight / 2 + diagonalOffsetY,
     width: scaledWidth,
     height: scaledHeight,
     zIndex: Math.round((1 - absDist) * 100),
@@ -153,5 +149,5 @@ window.addEventListener("resize", () => {
   windowWidth = window.innerWidth;
   windowHeight = window.innerHeight;
   windowCenterX = windowWidth / 2;
-  arcBaselineY = windowHeight * 0.4;
+  arcBaselineY = windowHeight * 0.5;
 });
