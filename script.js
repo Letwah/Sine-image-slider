@@ -14,16 +14,16 @@ const slideSources = Array.from(
 );
 
 const slideTitles = [
-  "Grenade",
-  "Plein de fruits",
-  "Bol de prunes fraîches",
-  "Les poires et les cerises",
-  "Pomme vert",
-  "Des prunes",
-  "Mangue",
-  "Les fruits rouges",
-  "Des prunes 2",
-  "Des cerises",
+  "Dawn Line",
+  "Foam Line",
+  "Peach Hour",
+  "Glass Off",
+  "Outer Break",
+  "The Tube",
+  "The Wall",
+  "Spray",
+  "The Pull",
+  "Point Break",
 ];
 
 const sliderContainer = document.querySelector(".slider");
@@ -38,11 +38,21 @@ function sampleAverageColor(imgEl) {
   try {
     colorCtx.drawImage(imgEl, 0, 0, 10, 10);
     const data = colorCtx.getImageData(0, 0, 10, 10).data;
-    let bestR = 0, bestG = 0, bestB = 0, bestChroma = -1;
+    let bestR = 0,
+      bestG = 0,
+      bestB = 0,
+      bestChroma = -1;
     for (let i = 0; i < data.length; i += 4) {
-      const r = data[i], g = data[i + 1], b = data[i + 2];
+      const r = data[i],
+        g = data[i + 1],
+        b = data[i + 2];
       const chroma = Math.max(r, g, b) - Math.min(r, g, b);
-      if (chroma > bestChroma) { bestChroma = chroma; bestR = r; bestG = g; bestB = b; }
+      if (chroma > bestChroma) {
+        bestChroma = chroma;
+        bestR = r;
+        bestG = g;
+        bestB = b;
+      }
     }
     return { r: bestR, g: bestG, b: bestB };
   } catch {
@@ -219,7 +229,10 @@ function syncActiveTitle(scrollOffset) {
     const imgEl = slideElements[closestIndex].querySelector("img");
     const applyColor = () => {
       const { r, g, b } = sampleAverageColor(imgEl);
-      titleDisplay.style.setProperty('--highlight', `rgba(${r}, ${g}, ${b}, 0.85)`);
+      titleDisplay.style.setProperty(
+        "--highlight",
+        `rgba(${r}, ${g}, ${b}, 0.85)`,
+      );
     };
     if (imgEl.complete) applyColor();
     else imgEl.addEventListener("load", applyColor, { once: true });
